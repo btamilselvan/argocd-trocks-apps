@@ -1,0 +1,19 @@
+spring:
+  profiles:
+    active: dev,kubernetes
+namespace: terraform-trocks-namespace
+apps:
+  gateway-service:
+    name: gateway-service
+    replicas: 1
+    discovery:
+      enabled: false
+    ingress:
+      enabled: true
+  person-service:
+    name: person-service
+    replicas: 1
+    discovery:
+      enabled: true
+    ingress:
+      enabled: true

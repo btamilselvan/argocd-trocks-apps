@@ -1,0 +1,8 @@
+replicaCount: 2
+ingress:
+  enabled: false
+  path: /
+  groupName: "trocks-alb"
+image:
+  repository: 123456789.dkr.ecr.us-east-1.amazonaws.com/person
+  tag: "1.0.2"

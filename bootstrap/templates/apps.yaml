@@ -1,0 +1,33 @@
+{{- range .Values.apps }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }} # name of the application (same as the service name)
+  namespace: argocd # ArgoCD is typically installed in the 'argocd' namespace
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/btamilselvan/argocd-trocks-apps.git'
+    targetRevision: develop
+    path: charts/base-service
+    helm:
+      valueFiles:
+        # Reach "out" of the chart folder into the specific app folder
+        - ../../apps/{{ .name }}/values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc # In-cluster URL for the Kubernetes API server
+    namespace: {{ $.Values.namespace }} # Namespace where the app will be deployed
+  syncPolicy:
+    automated:
+      prune: true # Automatically delete resources removed from Git
+      selfHeal: true # Automatically apply changes made to the Git repo
+    retry:
+      limit: 2
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "3m"
+---
+{{- end }}
