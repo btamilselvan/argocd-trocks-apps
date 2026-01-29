@@ -15,7 +15,7 @@ spec:
     helm:
       valueFiles:
         # Reach "out" of the chart folder into the specific app folder
-        - ../../apps/{{ .name }}/values-prod.yaml
+        - ../../apps/{{ .name }}/values.yaml
   destination:
     server: https://kubernetes.default.svc # In-cluster URL for the Kubernetes API server
     namespace: {{ $.Values.namespace }} # Namespace where the app will be deployed
