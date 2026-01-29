@@ -38,3 +38,4 @@ spec:
                 name: {{ .Values.appName }} #fetching the app name from Values.yaml
                 port:
                   number: 80 #service port defined in service-gateway-service.
+{{- end }}
