@@ -2,18 +2,12 @@ spring:
   profiles:
     active: dev,kubernetes
 namespace: terraform-trocks-namespace
-apps:
-  gateway-service:
-    name: gateway-service
-    replicas: 1
-    discovery:
-      enabled: false
-    ingress:
-      enabled: true
-  person-service:
-    name: person-service
-    replicas: 1
-    discovery:
-      enabled: true
-    ingress:
-      enabled: true
+replicas: 1
+discovery:
+  enabled: false
+ingress:
+  enabled: false
+# appName: generic-service
+# image:
+#   repository: placeholder-repo/generic-service
+#   tag: latest

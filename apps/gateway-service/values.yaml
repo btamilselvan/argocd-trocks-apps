@@ -1,8 +1,12 @@
-replicaCount: 1
+spring:
+  profiles:
+    active: dev,kubernetes
+replicas: 1
+discovery:
+  enabled: false
 ingress:
   enabled: true
-  path: /
-  groupName: "trocks-alb"
+appName: gateway-service
 image:
-  repository: 123456789.dkr.ecr.us-east-1.amazonaws.com/gateway
-  tag: "1.0.2"
+  repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service:0e96c74"
+  tag: "0e96c74"

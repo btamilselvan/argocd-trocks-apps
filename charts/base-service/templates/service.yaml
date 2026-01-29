@@ -1,0 +1,19 @@
+# service definitions for gateway-service, person-service, and address-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }} #DNS name
+  namespace: {{ .Values.namespace }}
+  labels:
+    discovery-enabled: {{ quote .Values.discovery.enabled }} #metadata label to be used by spring cloud kubernetes discovery client
+spec:
+  #type: NodePort #for exposing outside the cluster in minikube - for local development
+  type: ClusterIP #default type - internal to the cluster
+  selector:
+    app: {{ .Values.appName }} #should match the label in the pod template
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80 #ingress talks to this port
+      targetPort: 8080
+      # nodePort: 30080 - enable this only if type is NodePort

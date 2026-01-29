@@ -14,6 +14,8 @@ spec:
     path: charts/base-service
     helm:
       valueFiles:
+        # base values file from base-service chart
+        - "values.yaml"
         # Reach "out" of the chart folder into the specific app folder
         - ../../apps/{{ .name }}/values.yaml
   destination:
