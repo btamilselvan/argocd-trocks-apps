@@ -2,3 +2,4 @@ namespace: terraform-trocks-namespace
 apps:
   - name: gateway-service
   - name: person-service
+  - name: address-service
