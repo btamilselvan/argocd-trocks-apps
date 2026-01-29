@@ -1,17 +1,30 @@
-# ---
-# #configmap (person-service) example
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: {{ .Values.appName }}-config
-#   namespace: {{ .Values.namespace }}
-# data:
-#   SPRING_PROFILES_ACTIVE: "kubernetes,dev,xyz"
-#   hello.message: "Hello from {{ .Values.appName }} in Kubernetes!"
-#   #another way will be to use the application.yaml to map config values to env variables
-#   {{ .Values.appName }}.yml: |
-#     greeting:
-#       message: "Hello from {{ .Values.appName }} configmap in Kubernetes!"
-#   {{ .Values.appName }}-dev.yml: |
-#     greeting:
-#       message: "Hello from {{ .Values.appName }} configmap in Kubernetes!. this is a dev profile"
+#configmap (person-service) example
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: person-service
+  namespace: {{ .Values.namespace }}
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes,dev,xyz"
+  hello.message: "Hello from person-service in Kubernetes!"
+  #another way will be to use the application.yaml to map config values to env variables
+  person-service.yml: |
+    greeting:
+      message: "Hello from person-service configmap in Kubernetes!"
+  person-service-dev.yml: |
+    greeting:
+      message: "Hello from person-service configmap in Kubernetes!. this is a dev profile"
+---
+## configmap (address-service) example
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: address-service
+  namespace: {{ .Values.namespace }}
+data:
+  SPRING_PROFILES_ACTIVE: "kubernetes,dev,xyz"
+  hello.message: "Hello from address-service in Kubernetes!"
+  #another way will be to use the application.yaml to map config values to env variables
+  address-service.yml: |
+    greeting:
+      message: "Hello from address-service configmap in Kubernetes!"
