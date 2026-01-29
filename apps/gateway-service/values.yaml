@@ -8,5 +8,5 @@ ingress:
   enabled: true
 appName: gateway-service
 image:
-  repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service:0e96c74"
+  repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service"
   tag: "0e96c74"

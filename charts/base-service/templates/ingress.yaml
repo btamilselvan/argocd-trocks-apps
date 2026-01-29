@@ -1,0 +1,40 @@
+{{- if .Values.discovery.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.appName }}-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: alb
+    #alb level configuration - global for all ingresses using the same ALB
+    # THE KEY: This name must be the same across all Ingresses sharing the ALB
+    alb.ingress.kubernetes.io/group.name: {{ .Values.alb.group_name }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.alb.certificate_arn }}
+
+    #target level configuration - specific to this ingress
+    alb.ingress.kubernetes.io/target-type: ip
+    # ArgoCD internal health check path
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    # Tells ALB to talk to ArgoCD via HTTP (since we'll use --insecure)
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+
+  labels:
+    app.kubernetes.io/name: {{ .Values.appName }}-ingress
+spec:
+  # ingressClassName: nginx #for NGINX Ingress Controller (minikube)
+  ingressClassName: alb #for AWS ALB Ingress Controller
+  rules:
+    # - host: api.localhost #uncomment and set this only if using host-based routing
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # name: gateway-service
+                name: {{ .Values.appName }} #fetching the app name from Values.yaml
+                port:
+                  number: 80 #service port defined in service-gateway-service.

@@ -1,8 +1,12 @@
-replicaCount: 2
+spring:
+  profiles:
+    active: dev,kubernetes
+replicas: 1
+discovery:
+  enabled: true
 ingress:
   enabled: false
-  path: /
-  groupName: "trocks-alb"
+appName: person-service
 image:
-  repository: 123456789.dkr.ecr.us-east-1.amazonaws.com/person
-  tag: "1.0.2"
+  repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/person-service"
+  tag: "0e96c74"
