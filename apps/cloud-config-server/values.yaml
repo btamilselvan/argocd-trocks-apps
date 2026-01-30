@@ -10,4 +10,4 @@ ingress:
 appName: cloud-config-server
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/cloud-config-server"
-  tag: "45e710c"
+  tag: "4eefbc4"
