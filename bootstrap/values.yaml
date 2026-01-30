@@ -3,3 +3,4 @@ apps:
   - name: gateway-service
   - name: person-service
   - name: address-service
+  - name: cloud-config-server

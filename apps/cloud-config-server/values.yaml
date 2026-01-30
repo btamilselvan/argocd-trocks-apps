@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev,kubernetes
+replicas: 1
+discovery:
+  enabled: true
+ingress:
+  enabled: false
+appName: cloud-config-server
+image:
+  repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/cloud-config-server"
+  tag: "5542feb"
