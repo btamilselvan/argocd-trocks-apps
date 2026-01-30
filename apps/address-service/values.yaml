@@ -9,4 +9,4 @@ ingress:
 appName: address-service
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/address-service"
-  tag: "83d8b40"
+  tag: "4eefbc4"
