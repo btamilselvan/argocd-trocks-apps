@@ -302,19 +302,113 @@ Access the ArgoCD UI to monitor application status:
 - Resource tree visualization
 - Deployment history and rollbacks
 
+### ArgoCD CLI
+
+The ArgoCD CLI uses gRPC protocol to communicate with the ArgoCD server. Since ArgoCD ingress is configured for HTTP, gRPC calls will fail by default.
+
+**Solution Options:**
+1. **Configure separate gRPC service** - Create additional ALB target group for gRPC traffic
+2. **Use `--grpc-web` flag** - Wraps gRPC calls in HTTP/1.1 requests (recommended)
+
+**CLI Usage with HTTP Ingress:**
+```bash
+# Login to ArgoCD server through ALB
+argocd login k8s-alb-e0ff9240e2-11111111.us-east-2.elb.amazonaws.com \
+  --grpc-web \
+  --grpc-web-root-path /argo-cd \
+  --username admin \
+  --password password
+
+# All subsequent commands use the same flags
+argocd app list --grpc-web
+argocd app sync gateway-service --grpc-web
+argocd app get gateway-service --grpc-web
+```
+
+**Why `--grpc-web` is needed:**
+- ArgoCD CLI normally uses gRPC protocol
+- HTTP-only ingress cannot handle native gRPC calls
+- `--grpc-web` wraps gRPC in standard HTTP/1.1 requests
+- Allows CLI to work through HTTP load balancers
+
 ### Useful Commands
 ```bash
-# Check application status
-argocd app list
+# Login first (required for CLI access through HTTP ingress)
+argocd login your-alb-endpoint.elb.amazonaws.com \
+  --grpc-web \
+  --grpc-web-root-path /argo-cd \
+  --username admin \
+  --password password
 
-# Sync specific application
-argocd app sync gateway-service
+# Application Management
+argocd app list --grpc-web                              # List all applications
+argocd app get gateway-service --grpc-web               # Get application details
+argocd app create --grpc-web -f app.yaml               # Create application from file
+argocd app delete gateway-service --grpc-web            # Delete application
 
-# View application details
-argocd app get gateway-service
+# Create New Application (CLI)
+argocd app create new-service --grpc-web \
+  --repo https://github.com/btamilselvan/argocd-trocks-apps.git \
+  --path charts/base-service \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace terraform-trocks-namespace \
+  --helm-set-file values=../../apps/new-service/values.yaml \
+  --sync-policy automated \
+  --auto-prune \
+  --self-heal
 
-# Manual sync all applications
-argocd app sync bootstrap-parent-app
+# Create Application with Inline Parameters
+argocd app create my-app --grpc-web \
+  --repo https://github.com/btamilselvan/argocd-trocks-apps.git \
+  --path charts/base-service \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace terraform-trocks-namespace \
+  --helm-set appName=my-app \
+  --helm-set image.repository=my-registry/my-app \
+  --helm-set image.tag=latest \
+  --helm-set replicas=2
+
+# Sync Operations
+argocd app sync gateway-service --grpc-web              # Sync specific application
+argocd app sync bootstrap-parent-app --grpc-web        # Sync parent app (syncs all children)
+argocd app sync --all --grpc-web                       # Sync all applications
+argocd app sync gateway-service --force --grpc-web     # Force sync (ignore differences)
+argocd app sync gateway-service --dry-run --grpc-web   # Preview sync changes
+
+# Application Status & Health
+argocd app wait gateway-service --grpc-web              # Wait for application to be synced
+argocd app history gateway-service --grpc-web           # View sync history
+argocd app rollback gateway-service 5 --grpc-web       # Rollback to specific revision
+argocd app diff gateway-service --grpc-web             # Show differences between Git and cluster
+
+# Resource Management
+argocd app resources gateway-service --grpc-web         # List application resources
+argocd app logs gateway-service --grpc-web             # View application logs
+argocd app patch gateway-service --grpc-web \          # Patch application
+  --patch '{"spec":{"syncPolicy":{"automated":null}}}'
+
+# Repository Management
+argocd repo list --grpc-web                            # List configured repositories
+argocd repo add https://github.com/user/repo.git --grpc-web  # Add repository
+
+# Cluster Management
+argocd cluster list --grpc-web                         # List configured clusters
+argocd cluster get https://kubernetes.default.svc --grpc-web  # Get cluster info
+
+# Project Management
+argocd proj list --grpc-web                            # List projects
+argocd proj get default --grpc-web                     # Get project details
+
+# Useful Filters and Options
+argocd app list --selector app.kubernetes.io/name=gateway-service --grpc-web  # Filter by labels
+argocd app sync gateway-service --resource Deployment:gateway-service --grpc-web  # Sync specific resource
+argocd app sync gateway-service --prune --grpc-web     # Sync and prune orphaned resources
+
+# Troubleshooting Commands
+argocd app get gateway-service --hard-refresh --grpc-web  # Force refresh from Git
+argocd app terminate-op gateway-service --grpc-web     # Terminate running operation
+argocd app set gateway-service --sync-policy automated --grpc-web  # Enable auto-sync
+argocd app unset gateway-service --sync-policy --grpc-web  # Disable auto-sync
 ```
 
 ## Troubleshooting
