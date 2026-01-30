@@ -226,6 +226,139 @@ To add a new microservice:
 
 ArgoCD will automatically detect the changes and deploy the new service.
 
+## Version Management
+
+### Understanding Chart Versions
+
+Helm charts and ArgoCD applications use several version properties for different purposes:
+
+#### Chart.yaml Version Properties
+
+```yaml
+# charts/base-service/Chart.yaml
+apiVersion: v2                    # Helm Chart API version
+name: generic-microservice
+version: 1.0.0                   # Chart version
+appVersion: "1.0.0"              # Application version
+type: application
+```
+
+**Property Purposes:**
+
+| Property | Purpose | When to Update | Example |
+|----------|---------|----------------|---------|
+| `apiVersion` | Helm Chart API schema version | When using different Helm features | `v1` (Helm 2), `v2` (Helm 3) |
+| `version` | Chart template version | When chart templates change | `1.0.0` → `1.1.0` (template updates) |
+| `appVersion` | Application/software version | When application code changes | `"1.0.0"` → `"1.2.3"` (app releases) |
+| `type` | Chart type | Rarely changed | `application`, `library` |
+
+#### ArgoCD Application Versions
+
+```yaml
+# ArgoCD Application manifest
+apiVersion: argoproj.io/v1alpha1  # ArgoCD API version
+kind: Application
+metadata:
+  name: gateway-service
+spec:
+  source:
+    targetRevision: develop        # Git branch/tag/commit
+    helm:
+      valueFiles:
+        - "values.yaml"
+```
+
+**ArgoCD Version Properties:**
+
+| Property | Purpose | When to Update | Example |
+|----------|---------|----------------|---------|
+| `apiVersion` | ArgoCD CRD API version | When ArgoCD upgrades | `argoproj.io/v1alpha1` |
+| `targetRevision` | Git reference to deploy | When changing deployment source | `develop`, `v1.2.3`, `main` |
+
+#### Helm Release Properties
+
+```yaml
+# Helm Release (deployed instance)
+helm install my-gateway-release charts/base-service \
+  --values apps/gateway-service/values.yaml \
+  --namespace terraform-trocks-namespace
+```
+
+**Release Properties:**
+
+- Release refers to a specific Sync Result—a point in time where the state of your Kubernetes cluster was reconciled with a specific Git commit. Think of it as a snapshot in your application's timeline.
+
+| Property | Purpose | When to Update | Example |
+|----------|---------|----------------|---------|
+| `Release Name` | Unique identifier for deployed instance | When creating new deployment | `my-gateway-release`, `gateway-service-v2` |
+| `Release Revision` | Deployment history version | Automatically incremented on updates | `1`, `2`, `3` (each helm upgrade) |
+| `Release Namespace` | Kubernetes namespace for deployment | When deploying to different environments | `dev`, `qa`, `prod` |
+| `Release Status` | Current state of deployment | Automatically managed by Helm | `deployed`, `failed`, `pending-upgrade` |
+
+#### Practical Examples
+
+**Scenario 1: Application Code Update**
+```yaml
+# Only update appVersion in Chart.yaml
+version: 1.0.0        # Chart templates unchanged
+appVersion: "1.2.3"   # New application release
+
+# Update image tag in values.yaml
+image:
+  tag: "1.2.3"        # Matches appVersion
+```
+
+**Scenario 2: Chart Template Changes**
+```yaml
+# Update chart version when templates change
+version: 1.1.0        # New chart version (added ingress template)
+appVersion: "1.2.3"   # Application version stays same
+```
+
+**Scenario 3: Major Chart Restructure**
+```yaml
+# Update both versions for major changes
+version: 2.0.0        # Breaking chart changes
+appVersion: "2.0.0"   # New major application version
+```
+
+**Scenario 4: Release Management**
+```bash
+# Deploy new release with specific name
+helm install gateway-v1 charts/base-service --values apps/gateway-service/values.yaml
+
+# Upgrade existing release (increments revision)
+helm upgrade gateway-v1 charts/base-service --values apps/gateway-service/values.yaml
+
+# Check release history
+helm history gateway-v1
+# REVISION  UPDATED                   STATUS     CHART               APP VERSION
+# 1         Mon Jan 15 10:00:00 2024  deployed   base-service-1.0.0  1.2.3
+# 2         Mon Jan 15 11:00:00 2024  deployed   base-service-1.0.0  1.2.4
+```
+
+#### Version Strategy
+
+- **Chart Version**: Use semantic versioning for chart changes
+  - Patch (1.0.1): Bug fixes in templates
+  - Minor (1.1.0): New features, backward compatible
+  - Major (2.0.0): Breaking changes
+
+- **App Version**: Match your application's release version
+  - Should correspond to Docker image tags
+  - Helps track what application version is deployed
+
+- **Target Revision**: Control deployment source
+  - `develop`: Latest development changes
+  - `v1.2.3`: Specific release tag
+  - `main`: Production-ready code
+
+- **Release Management**: Control deployment instances
+  - **Release Name**: Use descriptive names (`gateway-service`, `gateway-v2`)
+  - **Release Revision**: Automatically managed by Helm upgrades
+  - **Release Namespace**: Separate environments (`dev`, `qa`, `prod`)
+  - **Release Rollback**: Use `helm rollback <release> <revision>` for quick recovery
+
 ## CI/CD Integration
 
 ### Automated Deployment Pipeline
@@ -349,6 +482,8 @@ argocd app delete gateway-service --grpc-web            # Delete application
 # Create New Application (CLI)
 argocd app create new-service --grpc-web \
   --repo https://github.com/btamilselvan/argocd-trocks-apps.git \
+  --username <github_usernamner> \
+  --password <github_persona_access_token> \
   --path charts/base-service \
   --dest-server https://kubernetes.default.svc \
   --dest-namespace terraform-trocks-namespace \
