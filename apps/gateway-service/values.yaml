@@ -9,4 +9,4 @@ ingress:
 appName: gateway-service
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service"
-  tag: "48ec3b7"
+  tag: "$IMAGE_TAG"
