@@ -3,6 +3,7 @@ spring:
     active: dev,kubernetes
 namespace: terraform-trocks-namespace
 replicas: 1
+containerPort: 8080
 discovery:
   enabled: false
 ingress:

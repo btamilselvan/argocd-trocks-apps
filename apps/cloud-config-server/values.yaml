@@ -2,6 +2,7 @@ spring:
   profiles:
     active: dev,kubernetes
 replicas: 1
+containerPort: 8888
 discovery:
   enabled: true
 ingress:
