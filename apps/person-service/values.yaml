@@ -9,4 +9,4 @@ ingress:
 appName: person-service
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/person-service"
-  tag: "0e96c74"
+  tag: "63a5e64"
