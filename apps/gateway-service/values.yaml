@@ -1,7 +1,7 @@
 spring:
   profiles:
     active: dev,kubernetes
-replicas: 1
+replicas: 2
 discovery:
   enabled: false
 ingress:
@@ -10,3 +10,39 @@ appName: gateway-service
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service"
   tag: "5542feb"
+affinity:
+  # node affinity (see node group labels defined in terraform template)
+  # schedule on app nodes only
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: "role"
+            operator: In
+            values:
+              - "app"
+          - key: "name"
+            operator: In
+            values:
+              - "app"
+  podAntiAffinity:
+    #do not place two pods on the same host
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: gateway-service
+      topologyKey: kubernetes.io/hostname
+    # try to spread pods over multiple zones
+    preferredDuringSchedulingIgnoredDuringExecution:
+    # - weight: 100
+    #   podAffinityTerm:
+    #     labelSelector:
+    #       matchLabels:
+    #         app.kubernetes.io/name: gateway-service
+    #     topologyKey: "kubernetes.io/hostname"
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: gateway-service
+        topologyKey: "topology.kubernetes.io/zone"

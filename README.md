@@ -359,6 +359,14 @@ helm history gateway-v1
   - **Release Namespace**: Separate environments (`dev`, `qa`, `prod`)
   - **Release Rollback**: Use `helm rollback <release> <revision>` for quick recovery
 
+| Version Type  | Location     | Frequency | Trigger                                        |
+|---------------|--------------|-----------|------------------------------------------------|
+| AppVersion    | Chart.yaml   | Very High | New Docker Image / Code Change.                |
+| Chart Version | Chart.yaml   | Medium    | Change to deployment.yaml, service.yaml, etc.  |
+| ApiVersion    | *.yaml (top) | Very Low  | Kubernetes Cluster Upgrade.                    |
+| Release Name  | ArgoCD App   | Once      | When adding a new microservice to the cluster. |
+
+
 ## CI/CD Integration
 
 ### Automated Deployment Pipeline
