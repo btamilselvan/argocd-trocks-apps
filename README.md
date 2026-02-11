@@ -583,6 +583,9 @@ kubectl logs -f deployment/gateway-service -n terraform-trocks-namespace
 
 # Check ingress status
 kubectl describe ingress gateway-service -n terraform-trocks-namespace
+
+# validate the template (run this from charts directory)
+helm template gse ./base-service -s templates/deployment.yaml -f ../apps/gateway-service/values.yaml
 ```
 
 ## Best Practices

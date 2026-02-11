@@ -10,6 +10,18 @@ appName: gateway-service
 image:
   repository: "194205500841.dkr.ecr.us-east-2.amazonaws.com/gateway-service"
   tag: "5542feb"
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+
 affinity:
   # node affinity (see node group labels defined in terraform template)
   # schedule on app nodes only

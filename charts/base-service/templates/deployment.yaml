@@ -23,6 +23,13 @@ spec: #deployment spec
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080 # Exposed port inside the container
+          resources:
+            requests:
+              memory: {{ quote .Values.hpa.requests.memory }}
+              cpu: {{ quote .Values.hpa.requests.cpu }}
+            limits:
+              memory: {{ quote .Values.hpa.limits.memory }}
+              cpu: {{ quote .Values.hpa.limits.cpu }}
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ quote .Values.spring.profiles.active }}
