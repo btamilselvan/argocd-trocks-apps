@@ -56,4 +56,4 @@ spec: #deployment spec
                 matchLabels:
                   app.kubernetes.io/name: {{ .Release.Name }}
               topologyKey: kubernetes.io/hostname
-        - {{- end } }}
+        - {{- end }}
