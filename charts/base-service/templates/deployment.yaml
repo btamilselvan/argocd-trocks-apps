@@ -44,9 +44,9 @@ spec: #deployment spec
             #       name: trocks-aws-secrets
             #       key: AWS_SECRET_ACCESS_KEY
       affinity:
-        - {{- if .Values.affinity }}
-        - {{- toYaml .Values.affinity | indent 8 }}
-        - {{- else }}
+        {{- if .Values.affinity }}
+        {{- toYaml .Values.affinity | indent 8 }}
+        {{- else }}
         # default anti-affinity rule to ensure pods are scheduled on different nodes
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -56,4 +56,4 @@ spec: #deployment spec
                 matchLabels:
                   app.kubernetes.io/name: {{ .Release.Name }}
               topologyKey: kubernetes.io/hostname
-        - {{- end }}
+        {{- end }}
