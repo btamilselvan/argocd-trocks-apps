@@ -65,7 +65,7 @@ spec:
           # minValues here enforces the scheduler to consider at least that number of unique instance-category to schedule the pods.
           # This field is ALPHA and can be dropped or replaced at any time
           # minValues: 2
-        - key: "karpenter.k8s.aws/instance-type"
+        - key: "knode.kubernetes.io/instance-type"
           operator: In
           values: ["t2.small", "t2.medium", "t2.large"]
           # minValues: 2
