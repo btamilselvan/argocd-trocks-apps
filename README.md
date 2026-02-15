@@ -420,6 +420,101 @@ git push origin develop
 
 ## Features
 
+### Karpenter Auto-Scaling
+
+This project uses Karpenter for intelligent node provisioning and auto-scaling in the Kubernetes cluster.
+
+#### NodeClass and NodePool Architecture
+
+Karpenter uses two key resources to manage node provisioning:
+
+**1. EC2NodeClass** - Defines the infrastructure configuration (AWS-specific)
+**2. NodePool** - Defines the scheduling and capacity requirements
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Karpenter Flow                         │
+│                                                             │
+│  ┌──────────────┐         ┌──────────────┐                │
+│  │   NodePool   │────────▶│ EC2NodeClass │                │
+│  │              │ refs    │              │                │
+│  │ - Capacity   │         │ - AMI        │                │
+│  │ - Taints     │         │ - Subnets    │                │
+│  │ - Labels     │         │ - Security   │                │
+│  │ - Limits     │         │ - IAM Role   │                │
+│  └──────────────┘         └──────────────┘                │
+│         │                                                  │
+│         ▼                                                  │
+│  ┌──────────────┐                                         │
+│  │  Provisions  │                                         │
+│  │  EC2 Nodes   │                                         │
+│  └──────────────┘                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+**Important**: The `name` field in `nodeClassRef` must exactly match the `metadata.name` in the EC2NodeClass resource.
+
+#### Karpenter kubectl Commands
+
+```bash
+# NodeClass Management
+kubectl get ec2nodeclass                           # List all NodeClasses
+kubectl get ec2nodeclass al2023-nodeclass         # Get specific NodeClass
+kubectl describe ec2nodeclass al2023-nodeclass    # Detailed NodeClass info
+kubectl get ec2nodeclass -o yaml                  # View NodeClass YAML
+
+# NodePool Management
+kubectl get nodepool                               # List all NodePools
+kubectl get nodepool trocks-apps-nodepool         # Get specific NodePool
+kubectl describe nodepool trocks-apps-nodepool    # Detailed NodePool info
+kubectl get nodepool -o yaml                      # View NodePool YAML
+
+# NodeClaim Management (Karpenter-managed nodes)
+kubectl get nodeclaim                              # List all NodeClaims
+kubectl describe nodeclaim <nodeclaim-name>       # NodeClaim details
+kubectl get nodeclaim -o wide                     # NodeClaim with more info
+
+# Node Information
+kubectl get nodes -l role=app                     # Nodes with app role label
+kubectl get nodes -l karpenter.sh/nodepool        # All Karpenter-managed nodes
+kubectl describe node <node-name>                 # Node details
+
+# Monitoring Karpenter
+kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter  # Karpenter logs
+kubectl get events -n karpenter --sort-by='.lastTimestamp'     # Karpenter events
+
+# Troubleshooting
+kubectl get nodeclaim -o jsonpath='{.items[*].status.conditions}'  # NodeClaim status
+kubectl get nodepool -o jsonpath='{.items[*].status}'              # NodePool status
+```
+
+#### How Karpenter Works with Applications
+
+1. **Pod Scheduling**: When a pod cannot be scheduled due to insufficient resources
+2. **NodePool Selection**: Karpenter evaluates NodePools based on pod requirements
+3. **NodeClass Reference**: Selected NodePool references its EC2NodeClass
+4. **Node Provisioning**: Karpenter provisions EC2 instance using NodeClass configuration
+5. **Pod Placement**: Pod is scheduled on the newly provisioned node
+
+#### Deployment Integration
+
+Applications must specify node affinity to use Karpenter-provisioned nodes:
+
+```yaml
+# deployment.yaml
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: role
+                    operator: In
+                    values:
+                      - app              # Matches NodePool label
+```
+
 ### Automated GitOps
 - **Self-Healing**: Automatically reverts manual changes
 - **Auto-Sync**: Deploys changes from Git automatically
