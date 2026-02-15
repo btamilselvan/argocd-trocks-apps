@@ -86,7 +86,7 @@ spec:
     nodes: 10
 
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 2m
 
   # Priority given to the NodePool when the scheduler considers which NodePool
