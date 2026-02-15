@@ -1,0 +1,22 @@
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: al2023-nodeclass
+spec:
+  amiFamily: AL2023
+  #should match the name of the role created in the terraform script
+  role: "Karpenter-{{ .Values.clusterName }}"
+  # Required, discovers subnets to attach to instances
+  # Each term in the array of subnetSelectorTerms is ORed together
+  # Within a single term, all conditions are ANDed
+  subnetSelectorTerms:
+    # Select on any subnet that has the "karpenter.sh/discovery: ${CLUSTER_NAME}"
+    # AND the "environment: test" tag OR any subnet with ID "subnet-09fa4a0a8f233a921"
+    - tags:
+        karpenter.sh/discovery: {{ quote .Values.clusterName }}
+        # environment: "dev"
+    # - id: "subnet-09fa4a0a8f233a921"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ quote .Values.clusterName }}
+        # environment: "dev"

@@ -51,16 +51,38 @@ spec: #deployment spec
             #       name: trocks-aws-secrets
             #       key: AWS_SECRET_ACCESS_KEY
       affinity:
-        {{- if .Values.affinity }}
-{{ toYaml .Values.affinity | indent 8 }}
-        {{- else }}
-        # default anti-affinity rule to ensure pods are scheduled on different nodes
+      # node affinity (see node group labels defined in terraform template)
+      # schedule on app nodes only
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "role"
+                  operator: In
+                  values:
+                    - "app"
+                - key: "name"
+                  operator: In
+                  values:
+                    - "app"
         podAntiAffinity:
+          #do not place two pods on the same host
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: {{ .Values.appName }}
+            topologyKey: kubernetes.io/hostname
+          # try to spread pods over multiple zones
           preferredDuringSchedulingIgnoredDuringExecution:
+          # - weight: 100
+          #   podAffinityTerm:
+          #     labelSelector:
+          #       matchLabels:
+          #         app.kubernetes.io/name: {{ .Values.appName }}
+          #     topologyKey: "kubernetes.io/hostname"
           - weight: 100
             podAffinityTerm:
               labelSelector:
                 matchLabels:
-                  app.kubernetes.io/name: {{ .Release.Name }}
-              topologyKey: kubernetes.io/hostname
-        {{- end }}
+                  app.kubernetes.io/name: {{ .Values.appName }}
+              topologyKey: "topology.kubernetes.io/zone"

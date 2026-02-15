@@ -1,0 +1,106 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: trocks-apps-nodepool
+spec:
+  # Template section that describes how to template out NodeClaim resources that Karpenter will provision
+  # Karpenter will consider this template to be the minimum requirements needed to provision a Node using this NodePool
+  # It will overlay this NodePool with Pods that need to schedule to further constrain the NodeClaims
+  # Karpenter will provision to launch new Nodes for the cluster
+  template:
+    metadata:
+      # Labels are arbitrary key-values that are applied to all nodes
+      labels:
+        # billing-team: my-team
+        # This MUST match the nodeAffinity/nodeSelector used in deployment.yaml for our apps
+        role: app
+        name: app
+
+      # Annotations are arbitrary key-values that are applied to all nodes
+      # annotations:
+      #   example.com/owner: "my-team"
+    spec:
+      # References the Cloud Provider's NodeClass resource, see your cloud provider specific documentation
+      nodeClassRef:
+        group: karpenter.k8s.aws  # Updated since only a single version will be served
+        kind: EC2NodeClass
+        name: al2023-nodeclass #this should match the NodeClass metadata name
+
+      # Provisioned nodes will have these taints
+      # Taints may prevent pods from scheduling if they are not tolerated by the pod.
+      # taints:
+      #   - key: example.com/special-taint
+      #     effect: NoSchedule
+
+      # Provisioned nodes will have these taints, but pods do not need to tolerate these taints to be provisioned by this
+      # NodePool. These taints are expected to be temporary and some other entity (e.g. a DaemonSet) is responsible for
+      # removing the taint after it has finished initializing the node.
+      # startupTaints:
+      #   - key: example.com/another-taint
+      #     effect: NoSchedule
+
+      # The amount of time a Node can live on the cluster before being removed
+      # Avoiding long-running Nodes helps to reduce security vulnerabilities as well as to reduce the chance of issues that can plague Nodes with long uptimes such as file fragmentation or memory leaks from system processes
+      # You can choose to disable expiration entirely by setting the string value 'Never' here
+
+      # Note: changing this value in the nodepool will drift the nodeclaims.
+      expireAfter: 720h
+
+      # The amount of time that a node can be draining before it's forcibly deleted. A node begins draining when a delete call is made against it, starting
+      # its finalization flow. Pods with TerminationGracePeriodSeconds will be deleted preemptively before this terminationGracePeriod ends to give as much time to cleanup as possible.
+      # If your pod's terminationGracePeriodSeconds is larger than this terminationGracePeriod, Karpenter may forcibly delete the pod
+      # before it has its full terminationGracePeriod to cleanup.
+
+      # Note: changing this value in the nodepool will drift the nodeclaims.
+      terminationGracePeriod: 48h
+
+      # Requirements that constrain the parameters of provisioned nodes.
+      # These requirements are combined with pod.spec.topologySpreadConstraints, pod.spec.affinity.nodeAffinity, pod.spec.affinity.podAffinity, and pod.spec.nodeSelector rules.
+      # Operators { In, NotIn, Exists, DoesNotExist, Gt, Lt, Gte, and Lte } are supported.
+      # https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+      requirements:
+        - key: "karpenter.k8s.aws/instance-category"
+          operator: In
+          values: ["t"]
+          # minValues here enforces the scheduler to consider at least that number of unique instance-category to schedule the pods.
+          # This field is ALPHA and can be dropped or replaced at any time
+          # minValues: 2
+        - key: "karpenter.k8s.aws/instance-type"
+          operator: In
+          values: ["t2.small", "t2.medium", "t2.large"]
+          # minValues: 2
+        - key: "karpenter.sh/capacity-type"
+          operator: In
+          values: ["on-demand"]
+        - key: "kubernetes.io/arch"
+          operator: In
+          values: ["amd64"]
+  
+  # Resource limits constrain the total size of the pool.
+  # Limits prevent Karpenter from creating new instances once the limit is exceeded.
+  limits:
+    cpu: "10" #millicore (1000m = 1cpu) or decimal cpu (e.g. 1) #10 cpu
+    memory: 20Gi #20GB
+    # For static NodePools, limits.nodes constrains maximum node count during scaling/drift
+    # Note : Supported only for static NodePools
+    nodes: 10
+
+  # Priority given to the NodePool when the scheduler considers which NodePool
+  # to select. Higher weights indicate higher priority when comparing NodePools.
+  # Specifying no weight is equivalent to specifying a weight of 0.
+  # Note: weight cannot be set when replicas is specified
+#   weight: 10
+# status:
+#   conditions:
+#     - type: Initialized
+#       status: "False"
+#       observedGeneration: 1
+#       lastTransitionTime: "2024-02-02T19:54:34Z"
+#       reason: NodeClaimNotLaunched
+#       message: "NodeClaim hasn't succeeded launch"
+  # # Current node count for the NodePool
+  # nodes: 5
+  # resources:
+  #   cpu: "20"
+  #   memory: "8192Mi"
+  #   ephemeral-storage: "100Gi"
