@@ -16,7 +16,7 @@ spec: #deployment spec
       labels:
         app: {{ .Values.appName }} #this should match the label in the selector above
     spec: #pod spec
-      serviceAccountName: gateway-trocks-account # ServiceAccount for RBAC permissions (must match the name in access-control.yml)
+      serviceAccountName: {{ .Values.service-account }} # ServiceAccount for RBAC permissions (must match the name in access-control.yml)
       containers:
         - name: {{ .Values.appName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}

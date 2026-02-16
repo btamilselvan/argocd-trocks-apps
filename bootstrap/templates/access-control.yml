@@ -1,8 +1,10 @@
-# RBAC configuration for gateway service to access Kubernetes API for service discovery
+# This service account is used for two different purposes. 
+# 1. Service account for gateway service to access kubernetes API for service discovery
+# 2. Default service account for all pods in the namespace to allow access to AWS resources via pod identity association
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: gateway-trocks-account
+  name: {{ .Values.service-account }}
   namespace: {{ .Values.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -22,7 +24,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 subjects:
   - kind: ServiceAccount
-    name: gateway-trocks-account # Must match the ServiceAccount name above
+    name: {{ .Values.service-account }} # Must match the ServiceAccount name above
     namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
