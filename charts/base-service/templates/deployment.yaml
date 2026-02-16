@@ -30,6 +30,14 @@ spec: #deployment spec
             limits:
               memory: {{ quote .Values.hpa.limits.memory }}
               cpu: {{ quote .Values.hpa.limits.cpu }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60 # do not measure readiness (CPU and memory usage) until 60 seconds
+            periodSeconds: 10
+            failureThreshold: 3
+
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ quote .Values.spring.profiles.active }}
