@@ -2,6 +2,7 @@ spring:
   profiles:
     active: dev,kubernetes
 namespace: terraform-trocks-namespace
+service-account: trocks-sa
 replicas: 1
 containerPort: 8080
 discovery:
@@ -11,6 +12,8 @@ ingress:
 alb:
   group_name: trocks-k8-shared-alb
   certificate_arn: "arn:aws:acm:us-east-2:194205500841:certificate/ee9525a1-c8c6-4cad-a8fb-acbca03bc8dd"
+aws:
+  region: us-east-2
 # appName: generic-service
 # image:
 #   repository: placeholder-repo/generic-service

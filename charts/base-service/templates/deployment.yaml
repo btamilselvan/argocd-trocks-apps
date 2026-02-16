@@ -35,7 +35,8 @@ spec: #deployment spec
               value: {{ quote .Values.spring.profiles.active }}
             - name: namespace
               value: {{ quote .Values.namespace }}
-            # - name: AWS_REGION
+            - name: AWS_REGION
+              value: {{ quote .Values.aws.region }}
             #   valueFrom:
             #     configMapKeyRef:
             #       name: trocks-config
