@@ -1,6 +1,6 @@
 namespace: terraform-trocks-namespace
 clusterName: trocks-eks
-service-account: trocks-sa
+serviceAccount: trocks-sa
 apps:
   - name: gateway-service
   - name: person-service
